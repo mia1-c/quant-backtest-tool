@@ -1,0 +1,28 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.python-version
+
+# ---- 数据与输出（数据文件通常不入库）----
+data/
+!data/.gitkeep
+*.csv
+!outputs/trades_dual_ma.csv
+outputs/*.html
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- 环境变量 ----
+.env
+.env.*
+
+# ---- 编辑器 / 系统 ----
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
