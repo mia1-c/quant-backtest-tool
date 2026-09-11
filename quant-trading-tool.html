@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>量化交易研究工具</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1f2933;
+      --muted: #65758b;
+      --line: #d8dee8;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --danger: #b42318;
+      --good: #137333;
+      --shadow: 0 10px 24px rgba(31, 41, 51, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 22px 28px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      max-width: 1100px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+    aside, section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    aside {
+      padding: 16px;
+      align-self: start;
+      position: sticky;
+      top: 102px;
+    }
+    .group {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .group:first-child { padding-top: 0; }
+    .group:last-child { border-bottom: 0; padding-bottom: 0; }
+    .group h2 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 760;
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 10px 0 6px;
+    }
+    input, select, button {
+      width: 100%;
+      height: 38px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      padding: 0 10px;
+      font: inherit;
+      font-size: 14px;
+    }
+    input[type="file"] {
+      height: auto;
+      padding: 9px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      font-weight: 720;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    button.secondary {
+      background: #eef3f6;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    .notice {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #8a4b08;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.55;
+      margin-top: 12px;
+    }
+    .workspace {
+      display: grid;
+      gap: 18px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 12px;
+      padding: 14px;
+    }
+    .metric {
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 76px;
+    }
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+    .chart-panel {
+      padding: 14px;
+    }
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .panel-title h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .pill {
+      color: var(--muted);
+      background: #f3f5f8;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    canvas {
+      width: 100%;
+      height: 340px;
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .tables {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      background: #f9fafb;
+    }
+    .table-wrap {
+      max-height: 360px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .positive { color: var(--good); }
+    .negative { color: var(--danger); }
+    .empty {
+      padding: 32px;
+      color: var(--muted);
+      line-height: 1.65;
+      text-align: center;
+    }
+    @media (max-width: 980px) {
+      header { position: static; }
+      main { grid-template-columns: 1fr; }
+      aside { position: static; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tables { grid-template-columns: 1fr; }
+      canvas { height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>量化交易研究工具</h1>
+    <p class="subtitle">导入日线数据，快速回测趋势/均值回归策略，重点观察月度稳定性、最大回撤和交易成本后的表现。工具用于研究与复盘，不构成投资建议，也不能保证盈利。</p>
+  </header>
+
+  <main>
+    <aside>
+      <div class="group">
+        <h2>数据</h2>
+        <label for="file">CSV 文件</label>
+        <input id="file" type="file" accept=".csv" />
+        <button class="secondary" id="loadBaiwei">载入佰维存储 688525</button>
+        <button class="secondary" id="loadSample">载入示例数据</button>
+        <div class="notice">CSV 至少包含 date 和 close 两列，也可包含 open/high/low/volume。日期格式建议为 YYYY-MM-DD。</div>
+      </div>
+
+      <div class="group">
+        <h2>策略</h2>
+        <label for="strategy">策略类型</label>
+        <select id="strategy">
+          <option value="ma">双均线趋势</option>
+          <option value="rsi">RSI 均值回归</option>
+          <option value="breakout">通道突破</option>
+        </select>
+        <div class="row">
+          <div>
+            <label for="fast">短周期</label>
+            <input id="fast" type="number" min="2" value="20" />
+          </div>
+          <div>
+            <label for="slow">长周期</label>
+            <input id="slow" type="number" min="3" value="60" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="rsiLow">RSI 买入</label>
+            <input id="rsiLow" type="number" min="1" max="49" value="30" />
+          </div>
+          <div>
+            <label for="rsiHigh">RSI 卖出</label>
+            <input id="rsiHigh" type="number" min="51" max="99" value="65" />
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>风控与成本</h2>
+        <div class="row">
+          <div>
+            <label for="cash">初始资金</label>
+            <input id="cash" type="number" min="1000" value="100000" />
+          </div>
+          <div>
+            <label for="position">最大仓位 %</label>
+            <input id="position" type="number" min="1" max="100" value="80" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="fee">单边手续费 %</label>
+            <input id="fee" type="number" min="0" step="0.01" value="0.05" />
+          </div>
+          <div>
+            <label for="slip">滑点 %</label>
+            <input id="slip" type="number" min="0" step="0.01" value="0.03" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="stop">止损 %</label>
+            <input id="stop" type="number" min="0" max="90" value="12" />
+          </div>
+          <div>
+            <label for="target">止盈 %</label>
+            <input id="target" type="number" min="0" max="300" value="0" />
+          </div>
+        </div>
+        <button id="run">运行回测</button>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <section class="metrics" id="metrics"></section>
+
+      <section class="chart-panel">
+        <div class="panel-title">
+          <h2>净值曲线</h2>
+          <span class="pill" id="dataStatus">等待数据</span>
+        </div>
+        <canvas id="equityChart" width="1200" height="420"></canvas>
+      </section>
+
+      <div class="tables">
+        <section class="chart-panel">
+          <div class="panel-title"><h2>月度收益</h2><span class="pill" id="monthStats">-</span></div>
+          <div class="table-wrap"><table id="monthly"></table></div>
+        </section>
+        <section class="chart-panel">
+          <div class="panel-title"><h2>交易记录</h2><span class="pill" id="tradeStats">-</span></div>
+          <div class="table-wrap"><table id="trades"></table></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let priceData = [];
+    let lastResult = null;
+
+    const $ = (id) => document.getElementById(id);
+    const fmtMoney = (v) => Number.isFinite(v) ? v.toLocaleString("zh-CN", { maximumFractionDigits: 0 }) : "-";
+    const fmtPct = (v) => Number.isFinite(v) ? `${(v * 100).toFixed(2)}%` : "-";
+    const fmtNum = (v) => Number.isFinite(v) ? v.toFixed(2) : "-";
+
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/).filter(Boolean);
+      if (lines.length < 2) throw new Error("CSV 数据行数不足。");
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      const dateIdx = headers.indexOf("date");
+      const closeIdx = headers.indexOf("close");
+      if (dateIdx < 0 || closeIdx < 0) throw new Error("CSV 需要包含 date 和 close 两列。");
+      return lines.slice(1).map(line => {
+        const cells = line.split(",").map(c => c.trim());
+        const close = Number(cells[closeIdx]);
+        return { date: cells[dateIdx], close };
+      }).filter(row => row.date && Number.isFinite(row.close) && row.close > 0)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    function sampleData() {
+      const data = [];
+      let price = 100;
+      const start = new Date("2020-01-02");
+      for (let i = 0; i < 1500; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        if (d.getDay() === 0 || d.getDay() === 6) continue;
+        const cycle = Math.sin(i / 39) * 0.004 + Math.sin(i / 113) * 0.003;
+        const drift = 0.00018;
+        const shock = (Math.random() - 0.48) * 0.018;
+        price *= 1 + drift + cycle + shock;
+        data.push({ date: d.toISOString().slice(0, 10), close: Math.max(1, price) });
+      }
+      return data;
+    }
+
+    function sma(values, period) {
+      const out = Array(values.length).fill(null);
+      let sum = 0;
+      for (let i = 0; i < values.length; i++) {
+        sum += values[i];
+        if (i >= period) sum -= values[i - period];
+        if (i >= period - 1) out[i] = sum / period;
+      }
+      return out;
+    }
+
+    function rsi(values, period) {
+      const out = Array(values.length).fill(null);
+      let gain = 0, loss = 0;
+      for (let i = 1; i < values.length; i++) {
+        const diff = values[i] - values[i - 1];
+        const up = Math.max(diff, 0), down = Math.max(-diff, 0);
+        if (i <= period) {
+          gain += up; loss += down;
+          if (i === period) out[i] = 100 - 100 / (1 + gain / Math.max(loss, 1e-9));
+        } else {
+          gain = (gain * (period - 1) + up) / period;
+          loss = (loss * (period - 1) + down) / period;
+          out[i] = 100 - 100 / (1 + gain / Math.max(loss, 1e-9));
+        }
+      }
+      return out;
+    }
+
+    function rollingHigh(values, period) {
+      return values.map((_, i) => i < period ? null : Math.max(...values.slice(i - period, i)));
+    }
+
+    function rollingLow(values, period) {
+      return values.map((_, i) => i < period ? null : Math.min(...values.slice(i - period, i)));
+    }
+
+    function signalAt(i, closes, cfg, indicators, inMarket) {
+      if (cfg.strategy === "ma") {
+        const fast = indicators.fast[i - 1], slow = indicators.slow[i - 1];
+        if (fast == null || slow == null) return inMarket;
+        return fast > slow;
+      }
+      if (cfg.strategy === "rsi") {
+        const value = indicators.rsi[i - 1];
+        if (value == null) return inMarket;
+        if (!inMarket && value <= cfg.rsiLow) return true;
+        if (inMarket && value >= cfg.rsiHigh) return false;
+        return inMarket;
+      }
+      const high = indicators.high[i - 1], low = indicators.low[i - 1];
+      if (high == null || low == null) return inMarket;
+      if (!inMarket && closes[i - 1] >= high) return true;
+      if (inMarket && closes[i - 1] <= low) return false;
+      return inMarket;
+    }
+
+    function runBacktest() {
+      if (priceData.length < 80) throw new Error("数据太少，建议至少 80 个交易日。");
+      const cfg = {
+        strategy: $("strategy").value,
+        fast: Number($("fast").value),
+        slow: Number($("slow").value),
+        rsiLow: Number($("rsiLow").value),
+        rsiHigh: Number($("rsiHigh").value),
+        cash: Number($("cash").value),
+        maxPosition: Number($("position").value) / 100,
+        fee: Number($("fee").value) / 100,
+        slip: Number($("slip").value) / 100,
+        stop: Number($("stop").value) / 100,
+        target: Number($("target").value) / 100
+      };
+      const closes = priceData.map(d => d.close);
+      const indicators = {
+        fast: sma(closes, Math.max(2, cfg.fast)),
+        slow: sma(closes, Math.max(3, cfg.slow)),
+        rsi: rsi(closes, Math.max(2, cfg.fast)),
+        high: rollingHigh(closes, Math.max(3, cfg.slow)),
+        low: rollingLow(closes, Math.max(3, cfg.fast))
+      };
+
+      let cash = cfg.cash, shares = 0, entry = 0, inMarket = false;
+      const equity = [];
+      const trades = [];
+      for (let i = 1; i < priceData.length; i++) {
+        const date = priceData[i].date;
+        const close = closes[i];
+        const prevEquity = cash + shares * close;
+        let desired = signalAt(i, closes, cfg, indicators, inMarket);
+        if (inMarket && cfg.stop > 0 && close <= entry * (1 - cfg.stop)) desired = false;
+        if (inMarket && cfg.target > 0 && close >= entry * (1 + cfg.target)) desired = false;
+
+        if (!inMarket && desired) {
+          const buyPrice = close * (1 + cfg.slip);
+          const budget = (cash + shares * close) * cfg.maxPosition;
+          shares = Math.floor(budget / buyPrice);
+          const cost = shares * buyPrice * (1 + cfg.fee);
+          if (shares > 0 && cost <= cash) {
+            cash -= cost;
+            entry = buyPrice;
+            inMarket = true;
+            trades.push({ date, action: "买入", price: buyPrice, shares, equity: cash + shares * close, pnl: 0 });
+          }
+        } else if (inMarket && !desired) {
+          const sellPrice = close * (1 - cfg.slip);
+          const proceeds = shares * sellPrice * (1 - cfg.fee);
+          const pnl = proceeds - shares * entry;
+          cash += proceeds;
+          trades.push({ date, action: "卖出", price: sellPrice, shares, equity: cash, pnl });
+          shares = 0;
+          entry = 0;
+          inMarket = false;
+        }
+        equity.push({ date, equity: cash + shares * close, cash, exposure: shares * close / Math.max(cash + shares * close, 1), dailyReturn: prevEquity ? (cash + shares * close) / prevEquity - 1 : 0 });
+      }
+      lastResult = summarize(equity, trades, cfg);
+      renderAll(lastResult);
+    }
+
+    function summarize(equity, trades, cfg) {
+      let peak = equity[0]?.equity || cfg.cash;
+      let maxDd = 0;
+      for (const row of equity) {
+        peak = Math.max(peak, row.equity);
+        maxDd = Math.min(maxDd, row.equity / peak - 1);
+      }
+      const start = equity[0]?.equity || cfg.cash;
+      const end = equity[equity.length - 1]?.equity || cfg.cash;
+      const years = equity.length / 252;
+      const cagr = years > 0 ? Math.pow(end / start, 1 / years) - 1 : 0;
+      const daily = equity.map(e => e.dailyReturn).slice(1);
+      const avg = daily.reduce((a, b) => a + b, 0) / Math.max(daily.length, 1);
+      const variance = daily.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / Math.max(daily.length - 1, 1);
+      const sharpe = Math.sqrt(252) * avg / Math.sqrt(Math.max(variance, 1e-12));
+      const closed = trades.filter(t => t.action === "卖出");
+      const wins = closed.filter(t => t.pnl > 0).length;
+      const monthly = monthlyReturns(equity);
+      const positiveMonths = monthly.filter(m => m.return > 0).length;
+      return {
+        equity, trades, monthly,
+        metrics: {
+          finalEquity: end,
+          totalReturn: end / start - 1,
+          cagr,
+          maxDd,
+          sharpe,
+          winRate: closed.length ? wins / closed.length : 0,
+          trades: closed.length,
+          positiveMonthRate: monthly.length ? positiveMonths / monthly.length : 0
+        }
+      };
+    }
+
+    function monthlyReturns(equity) {
+      const buckets = new Map();
+      for (const row of equity) {
+        const key = row.date.slice(0, 7);
+        if (!buckets.has(key)) buckets.set(key, { month: key, first: row.equity, last: row.equity });
+        buckets.get(key).last = row.equity;
+      }
+      return [...buckets.values()].map(m => ({ month: m.month, return: m.last / m.first - 1, end: m.last }));
+    }
+
+    function renderMetrics(metrics) {
+      const items = [
+        ["期末资金", fmtMoney(metrics.finalEquity)],
+        ["总收益", fmtPct(metrics.totalReturn)],
+        ["年化收益", fmtPct(metrics.cagr)],
+        ["最大回撤", fmtPct(metrics.maxDd)],
+        ["夏普比率", fmtNum(metrics.sharpe)],
+        ["交易次数", metrics.trades],
+        ["交易胜率", fmtPct(metrics.winRate)],
+        ["月度正收益率", fmtPct(metrics.positiveMonthRate)],
+        ["风险提示", metrics.maxDd < -0.2 ? "回撤偏高" : "需继续验证"],
+        ["结论", metrics.positiveMonthRate >= 0.6 && metrics.maxDd > -0.2 ? "可深入研究" : "谨慎优化"]
+      ];
+      $("metrics").innerHTML = items.map(([label, value]) => `<div class="metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
+    }
+
+    function renderChart(equity) {
+      const canvas = $("equityChart");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!equity.length) return;
+      const pad = { left: 64, right: 24, top: 24, bottom: 42 };
+      const w = canvas.width - pad.left - pad.right;
+      const h = canvas.height - pad.top - pad.bottom;
+      const values = equity.map(e => e.equity);
+      const min = Math.min(...values), max = Math.max(...values);
+      const y = v => pad.top + h - (v - min) / Math.max(max - min, 1) * h;
+      const x = i => pad.left + i / Math.max(equity.length - 1, 1) * w;
+      ctx.strokeStyle = "#d8dee8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let g = 0; g <= 4; g++) {
+        const yy = pad.top + h * g / 4;
+        ctx.moveTo(pad.left, yy); ctx.lineTo(pad.left + w, yy);
+      }
+      ctx.stroke();
+      ctx.fillStyle = "#65758b";
+      ctx.font = "16px Microsoft YaHei, sans-serif";
+      ctx.fillText(fmtMoney(max), 10, pad.top + 8);
+      ctx.fillText(fmtMoney(min), 10, pad.top + h);
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      equity.forEach((row, i) => i === 0 ? ctx.moveTo(x(i), y(row.equity)) : ctx.lineTo(x(i), y(row.equity)));
+      ctx.stroke();
+      ctx.fillStyle = "#1f2933";
+      ctx.fillText(equity[0].date, pad.left, canvas.height - 12);
+      ctx.fillText(equity[equity.length - 1].date, canvas.width - 120, canvas.height - 12);
+    }
+
+    function renderTables(result) {
+      $("monthly").innerHTML = `<thead><tr><th>月份</th><th>收益</th><th>月末资金</th></tr></thead><tbody>` +
+        result.monthly.slice().reverse().map(m => `<tr><td>${m.month}</td><td class="${m.return >= 0 ? "positive" : "negative"}">${fmtPct(m.return)}</td><td>${fmtMoney(m.end)}</td></tr>`).join("") +
+        `</tbody>`;
+      $("trades").innerHTML = `<thead><tr><th>日期</th><th>方向</th><th>价格</th><th>数量</th><th>盈亏</th></tr></thead><tbody>` +
+        result.trades.slice().reverse().map(t => `<tr><td>${t.date}</td><td>${t.action}</td><td>${fmtNum(t.price)}</td><td>${t.shares}</td><td class="${t.pnl >= 0 ? "positive" : "negative"}">${fmtMoney(t.pnl)}</td></tr>`).join("") +
+        `</tbody>`;
+      $("monthStats").textContent = `${result.monthly.length} 个月`;
+      $("tradeStats").textContent = `${result.trades.length} 笔记录`;
+    }
+
+    function renderAll(result) {
+      renderMetrics(result.metrics);
+      renderChart(result.equity);
+      renderTables(result);
+      $("dataStatus").textContent = `${priceData.length} 行数据`;
+    }
+
+    function setEmpty(message) {
+      $("metrics").innerHTML = `<div class="empty" style="grid-column: 1 / -1">${message}</div>`;
+      $("monthly").innerHTML = "";
+      $("trades").innerHTML = "";
+      $("monthStats").textContent = "-";
+      $("tradeStats").textContent = "-";
+      const ctx = $("equityChart").getContext("2d");
+      ctx.clearRect(0, 0, $("equityChart").width, $("equityChart").height);
+    }
+
+    $("file").addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        priceData = parseCsv(await file.text());
+        $("dataStatus").textContent = `${priceData.length} 行数据`;
+        runBacktest();
+      } catch (err) {
+        setEmpty(err.message);
+      }
+    });
+    $("loadSample").addEventListener("click", () => {
+      priceData = sampleData();
+      runBacktest();
+    });
+    $("loadBaiwei").addEventListener("click", async () => {
+      try {
+        const response = await fetch("./688525-baiwei-storage-20240101-20260713-close.csv");
+        if (!response.ok) throw new Error(`无法读取佰维存储 CSV：HTTP ${response.status}`);
+        priceData = parseCsv(await response.text());
+        $("dataStatus").textContent = `佰维存储 688525：${priceData.length} 行数据`;
+        runBacktest();
+      } catch (err) {
+        setEmpty(`载入失败：${err.message}。如果浏览器限制本地文件读取，请用上方 CSV 文件按钮手动选择 outputs 目录里的 688525-baiwei-storage-20240101-20260713-close.csv。`);
+      }
+    });
+    $("run").addEventListener("click", () => {
+      try {
+        if (!priceData.length) priceData = sampleData();
+        runBacktest();
+      } catch (err) {
+        setEmpty(err.message);
+      }
+    });
+
+    setEmpty("请导入 CSV 或载入示例数据后运行回测。重点看交易成本后的月度正收益率与最大回撤。");
+  </script>
+</body>
+</html>
