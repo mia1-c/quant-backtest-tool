@@ -1,0 +1,9 @@
+# 本项目除 NumPy / Pandas / Matplotlib 外无其他运行时依赖（不依赖任何回测框架）
+
+numpy>=1.24
+pandas>=1.5
+matplotlib>=3.6
+
+# 可选：Jupyter 中做交互式研究
+# jupyter>=1.0
+# ipykernel>=6.0
